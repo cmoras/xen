@@ -1,0 +1,15 @@
+import os
+import re
+
+for i in os.get_exec_path():
+	os.chdir(i)
+	list=os.listdir()
+	for j in list:
+		if re.search(r'xl$', j):
+			XL=os.path.join(i,"xl")
+
+
+##
+the first section of identifying if xl or xm s being used is complete.		
+
+print(f"{XL}")
