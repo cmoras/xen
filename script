@@ -1,15 +1,54 @@
 import os
 import re
+from subprocess import PIPE, Popen
+
+flag=0
 
 for i in os.get_exec_path():
 	os.chdir(i)
 	list=os.listdir()
 	for j in list:
+		if flag == 1:
+			break;
 		if re.search(r'xl$', j):
 			XL=os.path.join(i,"xl")
-
-
+			FLAG=1
+		elif re.search(r'xm$', j):
+			XM=os.path.join(i, "xm")
+			FLAG=1
 ##
-the first section of identifying if xl or xm s being used is complete.		
+##the first section of identifying which of  xl or xm is being used completes here.
+##
 
-print(f"{XL}")
+#startig with the main program
+
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-x', '--show_vmnames', help='List of vmnames along with hostnames', action='store_value')
+parser.add_argument('-a', '--show_pooldetails', help='Check current details wrt cpu', action='store_true')
+parser.add_argument('-s', '--set_pool', help='create new pool as per NUMA acrchitecture' action='store_true')
+
+args=parser.parse_args()
+
+
+if (args.show_vmnames):
+	condition=0
+	while (condition !=0):
+		print("[+] Available vm on the system under xen are")
+		os.chdir('/home/xen')
+		list0=os.listdir(os.getcwd())
+		for i in list0:
+			print(i, end=" ")
+		print("[+] Do you more details on vm ?")
+		while True:
+			
+		vmname=raw_input("Eneter the vm number that you want more etails of")
+		
+
+		
+	
+
+
+
