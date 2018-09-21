@@ -4,7 +4,6 @@ import re
 import glob
 import re
 
-
 from subprocess import PIPE, Popen
 
 flag=0
@@ -93,10 +92,18 @@ if (args.show_vmnames):
 
 
 	
-		
+if(args.show_pooldetails):
+	p1=Popen(["xl", "cpupool-list", "-c"], stdout=PIPE)			
+	out,error=p1.communicate()
+	list=out.decode('ascii').split('\n')
+##
+##
+##you should get something like for instance 
+##>>list
+##[u'Name               CPU list', u'Pool-node0         0,1,2,3,4,5,6,7,8,9,10,11', u'Pool-node1         12,13,14,15,16,17,18,19,20,21,22,23', u'']
+##
+##
+	pool0_list=list[1].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
+	pool1_list=list[2].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
 
-		
 	
-
-
-
