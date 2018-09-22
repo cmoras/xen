@@ -49,6 +49,48 @@ def cfg_parse(i):
 			[hm.append(match) for match in re.findall(r'^vcpu.*', line)]
 			hm.append("\n")
 	print(hm)
+
+##################################################################################################
+### this function needs to be looksed into.  if possible merged with vm_pool function defition.### 
+##################################################################################################
+def check_vm_pool_status(line):
+	p2=Popen(["xl", "vcpu-list"], stdout=PIPE)
+        out,error=p2.communicate()
+
+        temp=[]
+        temp1=[]
+        pool0_cnt=0
+        pool1_cnt=0
+	
+	for i in out.split('\n'):
+		if vmname in i:
+			print(i.split('   '))
+			temp.append(i.split('   ')[12])
+	for j in temp:
+		if j.lstrip(' ') in pool0_list:
+			pool0_cnt+=1
+		if j.lstrip(' ') in pool1_list:
+			pool1_cnt+=1
+
+	for i in out.split('\n'):
+		if vmname in i:
+			temp1.append(i.split('  ')[0])
+        ##
+	##starting with the comparision here
+        ##
+
+	print(pool0_cnt)
+	print(len(temp1))
+
+	if len(temp1) == pool0_cnt:
+		print("pool0")
+	elif len(temp1) == pool1_cnt:
+		print("pool1")
+	else:
+		print("no pooling on the host node. Check. the show pool option")
+		flag="unknown"
+	
+	return flag
 	
 
 def vm_pool(vmname):
@@ -90,7 +132,12 @@ def vm_pool(vmname):
 		flag="unknown"
 	
 
-
+def vm_pool_migrate(line, pool0_name, pool1_name):
+	p3=Popen(["xl", "-vf", "cpupool-migrate", "line", "pool1_name"], stdout=PIPE)
+	out,error=p3.communicate()
+	
+	
+	
 
 
 
@@ -146,15 +193,101 @@ if(args.show_pooldetails):
 ##
 	pool0_list=list[1].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
 	pool1_list=list[2].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
+	pool0_name=list[1].encode('utf-8').split('      ')[0]
+	pool1_name=list[2].encode('utf-8').split('	')[0]
+
+
+#[root@soluscn149xen-wa-nyc ~]# xl cpupool-migrate 
+#'xl cpupool-migrate' requires at least 2 arguments.
+#
+#Usage: xl [-vf] cpupool-migrate <Domain> <CPU Pool>
+#
+#Moves a domain into a CPU pool.
+
+
+###################################################################################
+#if more than one pool present: then 
+#	go ahead
+#else
+#	print"Just one pool present"
+#	print"do you think another pool is present.
+#	print"checking if the CPU arch is NUMA reliant.
+#	print"we have 2 option : if numa reliant,  we could go ahead with the following 
+
+######option1
+
+###!/bin/bash
+#DATE=$(date)
+#CONTINUE=$(wc -l /etc/xen/list.cpupool | awk '{print $1}')
+#
+#if [ $CONTINUE != '0' ] ; then
+#        # give xendomains time to start everything
+#        sleep 45
+#
+#        echo "$DATE Creating the pool" >> /var/log/cpupool
+#        /usr/sbin/xl cpupool-numa-split
+#
+#        sleep 15
+#
+#        VM=$(cat /etc/xen/list.cpupool)
+#        for ID in $VM; do
+#                echo "$DATE Migrating $ID to Pool-node1" >> /var/log/cpupool
+#                /usr/sbin/xl cpupool-migrate $ID Pool-node1
+#        done
+#else
+#	echo "$DATE cpupool skipped, no servers in /etc/xen/list.cpupool" >> /var/log/cpupool
+#fi
+
+#########option2
+
+#[root@soluscn149xen-wa-nyc rc3.d]# xl cpupool-create name=\"NewPool\"
+#Using config file "command line"
+#cpupool name:   NewPool
+#scheduler:      credit
+#number of cpus: 0
+#[root@soluscn149xen-wa-nyc rc3.d]# xl cpupool-list
+#Name               CPUs   Sched     Active   Domain count
+#Pool-node0          12    credit       y         11
+#Pool-node1          12    credit       y          1
+#NewPool              0    credit       y          0
+
+
+#$  xl cpupool-create name=\"NewPool\"
+#Remove CPU from the older pool:
+#$ xl cpupool-cpu-remove Pool-0 <1>
+#Add free CPU to new cpupool:
+#$ xl cpupool-cpu-add NewPool <1> 
+#Now my NewPool has 1 attached CPU and Pool-0 3 CPU (in case 4 CPU on the machine).
+#The problem is on re-boot my NewPool is deleted and a "default pool" named Pool-0 will be created. And all CPU's assign to it. I want to save my NewPool on every reboot. I understand that I can make some service using systemd and my own script, but maybe there is native support by XEN to do it.
+#I read this:
+#https://wiki.xen.org/wiki/Cpupools_Howto
+#this:
+#https://xenbits.xen.org/docs/4.11-testing/man/xlcpupool.cfg.5.html
+#annd default man in Xen git folder
+#docs/man/xlcpupool.cfg
+#And there is no any mention regarding cpupool which can be created on system boot. Any suggestion, please.
+#System settings:
+#Xen 4.6
+#kernel 4.1.27 for dom0.
+
+
+
+
+
+
+
+##########################################################################################################################
+### edit needed here, it should only proceed her if there is more than one pool.  else we should skip out witha message###
+##########################################################################################################################
 	
 	print("[+]Do you want ot find out pool-status of any vm's?")
 	ch=input("Choice: ? y/n")
-	if ch == y:
+	if ch == 'y':
 		vmname=raw_input("Enter the vmname:")
 			
 		vm_pool(vmname)
 	else:
-		print("[+]Have a nice day")
+		print("[+]Have a nice day!!!!")
 	
 	print("[+]Do you want ot check the status of the vm's that have been moved to pool1 from pool0.")
 	print("[!!!]This is important, as in our setup, the vm once rebooted via solus panel or host node revert back to pool0 , but leaving pool1 entry as is...")
@@ -162,6 +295,30 @@ if(args.show_pooldetails):
 ###
 ##This section will be as important as i will writing a fuction to push a cron to move the vm back to the new-pool. but for now important.
 ###
+	ch=''
+	ch=input("Choice: ? y/n")
+	if ch == 'y':
+		os.chdir('/etc/xen')
+		with open('list.cpupool')  as it:
+			for line in it:
+				result=check_vm_pool_status(line)
+				if "unknown" in result:
+					vm_pool_migrate(line, pool0_name, pool1_name)
+					result=check_vm_pool_status(line)
+					if "unknown" in result:
+						print("[+]Severe error, manual intervention required")
+						break
+					else:
+						print(f"[+]{line} has been migrated to {pool1_name}")
+				else:
+					print("We are good!!!! have a cookie")
+	else:	
+		print("[+]Now if something breaks on the server. I will blame you!!!!")
+
+##################################################
+#######That should end our vm migration bit#######
+##################################################					 
+		
 		
 
 	
