@@ -49,6 +49,47 @@ def cfg_parse(i):
 			[hm.append(match) for match in re.findall(r'^vcpu.*', line)]
 			hm.append("\n")
 	print(hm)
+	
+
+def vm_pool(vmname):
+	p2=Popen(["xl", "vcpu-list"], stdout=PIPE)
+	out,error=p2.communicate()
+	
+	temp=[]
+	temp1=[]
+	pool0_cnt=0
+	pool1_cnt=0
+	
+	for i in out.split('\n'):
+		if vmname in i:
+			print(i.split('   '))
+			temp.append(i.split('   ')[12])
+			
+	for j in temp:
+		if j.lstrip(' ') in pool0_list:
+			pool0_cnt+=1
+		if j.lstrip(' ') in pool1_list:
+			pool1_cnt+=1
+
+	for i in out.split('\n'):
+		if vmname in i:
+			temp1.append(i.split('  ')[0])
+	##
+	##starting with the comparision here
+	##
+	
+	print(pool0_cnt)
+	print(len(temp1))
+	
+	if len(temp1) == pool0_cnt:
+		print("pool0")
+	elif len(temp1) == pool1_cnt:
+		print("pool1")
+	else:
+		print("no pooling on the host node. Check. the show pool option")
+		flag="unknown"
+	
+
 
 
 
@@ -105,5 +146,22 @@ if(args.show_pooldetails):
 ##
 	pool0_list=list[1].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
 	pool1_list=list[2].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
+	
+	print("[+]Do you want ot find out pool-status of any vm's?")
+	ch=input("Choice: ? y/n")
+	if ch == y:
+		vmname=raw_input("Enter the vmname:")
+			
+		vm_pool(vmname)
+	else:
+		print("[+]Have a nice day")
+	
+	print("[+]Do you want ot check the status of the vm's that have been moved to pool1 from pool0.")
+	print("[!!!]This is important, as in our setup, the vm once rebooted via solus panel or host node revert back to pool0 , but leaving pool1 entry as is...")
+	print("[!!!]...So it is important you check this atleast once.)
+###
+##This section will be as important as i will writing a fuction to push a cron to move the vm back to the new-pool. but for now important.
+###
+		
 
 	
