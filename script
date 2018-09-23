@@ -152,6 +152,20 @@ def test_os():
 		print("[!!]Support not available for this varaint as of now. Raise a isseu in the github repo link")
 
 
+
+def numa_split():
+	print("[+]Lets being the split")
+	p7=Popen(["xl", "cpupool-numa-split"], stdout=PIPE)
+		out,error=p7.communicate()
+	print("[+]New pool created")
+
+def manual_pool_create():
+	print("[+]Lets being the split")
+	p8=Popen(["xl", "cpupool-create", ], stdout=PIPE)
+		out,error=p8.communicate()
+	print("[+]New pool created")
+
+
 def install_package(apt, yum):
 	name=getpass.getuser()
 	if not name == "root":
@@ -170,6 +184,8 @@ def install_package(apt, yum):
 				p5=Popen(["apt-get", "install", "numactl"], stdout=PIPE)
 				out,error=p5.communicate()
 				print("[*]Installed numactl package")
+				success=1
+				return success
 		elif yum == "1":
 ##using yum module for this 
 			import yum 
@@ -179,8 +195,12 @@ def install_package(apt, yum):
 			else:
 				yb.install(name='numactl')
 				print("[*]Installed numactl package")
+				success=1
+				return success
 		else:
 			print("[!!]Distribution/Varaint unknown. Handle manually")
+			success=0
+			return success
 
 
 
@@ -238,84 +258,6 @@ if(args.show_pooldetails):
 	pool1_list=list[2].encode('utf-8').split('       ')[1].lstrip(' ').split(',')
 	pool0_name=list[1].encode('utf-8').split('      ')[0]
 	pool1_name=list[2].encode('utf-8').split('	')[0]
-
-
-#[root@soluscn149xen-wa-nyc ~]# xl cpupool-migrate
-#'xl cpupool-migrate' requires at least 2 arguments.
-#
-#Usage: xl [-vf] cpupool-migrate <Domain> <CPU Pool>
-#
-#Moves a domain into a CPU pool.
-
-
-###################################################################################
-#if more than one pool present: then
-#	go ahead
-#else
-#	print"Just one pool present"
-#	print"do you think another pool is present.
-#	print"checking if the CPU arch is NUMA reliant.
-#	print"we have 2 option : if numa reliant,  we could go ahead with the following
-
-######option1
-
-###!/bin/bash
-#DATE=$(date)
-#CONTINUE=$(wc -l /etc/xen/list.cpupool | awk '{print $1}')
-#
-#if [ $CONTINUE != '0' ] ; then
-#        # give xendomains time to start everything
-#        sleep 45
-#
-#        echo "$DATE Creating the pool" >> /var/log/cpupool
-#        /usr/sbin/xl cpupool-numa-split
-#
-#        sleep 15
-#
-#        VM=$(cat /etc/xen/list.cpupool)
-#        for ID in $VM; do
-#                echo "$DATE Migrating $ID to Pool-node1" >> /var/log/cpupool
-#                /usr/sbin/xl cpupool-migrate $ID Pool-node1
-#        done
-#else
-#	echo "$DATE cpupool skipped, no servers in /etc/xen/list.cpupool" >> /var/log/cpupool
-#fi
-
-#########option2
-
-#[root@soluscn149xen-wa-nyc rc3.d]# xl cpupool-create name=\"NewPool\"
-#Using config file "command line"
-#cpupool name:   NewPool
-#scheduler:      credit
-#number of cpus: 0
-#[root@soluscn149xen-wa-nyc rc3.d]# xl cpupool-list
-#Name               CPUs   Sched     Active   Domain count
-#Pool-node0          12    credit       y         11
-#Pool-node1          12    credit       y          1
-#NewPool              0    credit       y          0
-
-
-#$  xl cpupool-create name=\"NewPool\"
-#Remove CPU from the older pool:
-#$ xl cpupool-cpu-remove Pool-0 <1>
-#Add free CPU to new cpupool:
-#$ xl cpupool-cpu-add NewPool <1>
-#Now my NewPool has 1 attached CPU and Pool-0 3 CPU (in case 4 CPU on the machine).
-#The problem is on re-boot my NewPool is deleted and a "default pool" named Pool-0 will be created. And all CPU's assign to it. I want to save my NewPool on every reboot. I understand that I can make some service using systemd and my own script, but maybe there is native support by XEN to do it.
-#I read this:
-#https://wiki.xen.org/wiki/Cpupools_Howto
-#this:
-#https://xenbits.xen.org/docs/4.11-testing/man/xlcpupool.cfg.5.html
-#annd default man in Xen git folder
-#docs/man/xlcpupool.cfg
-#And there is no any mention regarding cpupool which can be created on system boot. Any suggestion, please.
-#System settings:
-#Xen 4.6
-#kernel 4.1.27 for dom0.
-
-
-
-
 
 
 
@@ -379,14 +321,48 @@ if (args.set_pool):
 
 		print("[+]Lets begin by starting the pool creation.")
 		print("[!!]The are 2 methods: ")
-		print("--numa-split :  this entriely depends on if the cpu supports NUMA arch")
+		print("--numa-split :  this entriely depends on if the cpu supports NUMA build")
 		print("--create-pool : will default to this  if numa split is not available.")
-		print("[+]First lets test what the distribution  in oder to check for installation")
+		print("[+]First lets test what the distribution  in order to check for installation")
 		value=test_os()
 
-		install_package()
+		success_op=install_package()
 		
+		if success_op == "1":
+			print("[+]Printing numanode output:")
+			print("----------------------------")
+			p6=Popen(["numactl", "--hardware"], stdout=PIPE)
+			out,error=p6.communicate()
+			
+			for i in (out.decode('utf-8').split('\n')):
+				line=i.encode('utf-8')
+				match=re.findall(r'available:\s(\d\snodes)', line)
+				temp.append(match)
+			string=temp[0][0]
+			print(f"Available nodes on the arch : {string}")
+			print("[*]This means that we can go ahead with numa-splitting")
+		else:
+			print("[!!]Package was not installed. So we not be going any forward.)
+	print("[?]Confirmation to proceed with numa-splitting : ")
+	ch=''
+	ch=input("Choice: ? y/n")
+	if ch == 'y':
+		numa_split()
+	 else:
+                print("[+]Not proceeding with num split")
+	
+	print("[?]Confirmation to proceed with numa-splitting : ")
+	ch=''
+	ch=input("Choice: ? y/n")
+	if ch == 'y':
+		normal_split()
+	else:
+		print("[+]Not proceeding with normal split")
 
+	
+
+			
+		
 KeyboardInterrupt
 >>> from subprocess import PIPE,Popen
 
