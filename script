@@ -35,7 +35,8 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-x', '--show_vmnames', help='List of vmnames along with hostnames', action='store_value')
 parser.add_argument('-a', '--show_pooldetails', help='Check current details wrt cpu', action='store_true')
-parser.add_argument('-s', '--set_pool', help='create new pool as per NUMA acrchitecture' action='store_true')
+parser.add_argument('-s', '--set_pool', help='create new pool as per NUMA acrchitecture', action='store_true')
+parser.add_argumnet('-r', '--add_remove_cpu', help='add cpu to a new pool, remove cpu from an existing pool', action='store_value')
 
 args=parser.parse_args()
 
@@ -153,6 +154,38 @@ def test_os():
 
 
 
+import random
+
+def add_remove_cpu_functi(cpu_transit, new_pool_name, total_num_cpus):
+	print(f"[+]Randomizing {cpu_transit} to be assigned to  {new_pool_name}")
+	temp=[]
+	
+	for i in range(0,int(total_num_cpus)):
+		temp.append(i)
+
+	print(f"[*]Sampling {cpu_transit} random CPU's from the total of {total_num_cpus}")
+	new_sample=random.sample(temp, cpu_transit)
+
+#This section is best written in bash as the number of lines code involved will vary based on the CPU's that user chooses"
+	
+
+####################################
+need to pass pool0_list and pool0_list for this section and new_sample values needs to be cross checked with theses lists.  if it exsis , then run this code, or less move to the next pool.
+
+	for i in new_sample:
+		p10=Popen(["xl", "cpupool-cpu-remove", "any_pool_name", "<str(i)>"]
+		out,error=p10.communicate()
+
+######################################
+	
+	for i in new_sample:
+		p11=Popen(["xl", "cpupool-cpu-add", "new_pool_name", "<str(i)>"]
+		out,error=p11.communicate()
+	
+	
+	
+
+
 def numa_split():
 	print("[+]Lets being the split")
 	p7=Popen(["xl", "cpupool-numa-split"], stdout=PIPE)
@@ -164,6 +197,7 @@ def manual_pool_create():
 	p8=Popen(["xl", "cpupool-create", ], stdout=PIPE)
 		out,error=p8.communicate()
 	print("[+]New pool created")
+	
 
 
 def install_package(apt, yum):
@@ -360,8 +394,44 @@ if (args.set_pool):
 		print("[+]Not proceeding with normal split")
 
 	
+if(args.add_remove_cpu):
+	print("[+]Do you want to make changes to the existing pool. This section can help with adding cpu's to the cpu-pool")
+	print("[+]Lets find the distribution of CPU per pool")
+	p8=Popen(["xl, "cpupool-list"], stdout=PIPE)
+	out,error=p8.communicate()
+	
+	print("-----------------------------------------")
+	print("[+]Current distribution of CPU's")
+	for i in (out.split('\n')):
+		print(i)
+	print("-----------------------------------------")
 
-			
+	
+	p9=Popen(["xl", "info", "-n"], stdout=PIPE)
+	out,error=p9.communicate()
+	
+	temp=[]
+	for i in (out.split('\n')):
+		match=re.findall(r'nr_cpus\s+:\s(\d\d)', i)
+		temp.append(match)
+
+	total_num_cpus=temp[4][0]
+	print(f"[*]Total number of cpus present are {total_num_cpus}")
+	
+	print(f"[*]Out of {total_num_cpus}, how many do you want add to the new pool that you have created.")
+	print([!!!!] WARNING [!!!!])
+	print("====================")
+	print("When you add CPU to a pool, say for instace 4, new pool will have 4 under it, while 4 CPUS's will be removed formt the old pool. Please proceed with caution.")
+	print("====================")
+	print([!!!!] WARNING [!!!!])
+
+	print([!!]Do you want to proceed to adding new CPU's to the pool")
+	ch=''
+	if ch == 'y':
+		print("[*]How many CPU's do you want ot add ot the new pool?")
+		cpu_transit=input("number : ")
+		new_pool_name=str(input("Enter the name of the pool : "))
+		add_remove_cpu_functi(cpu_transit, new_pool_name, total_num_cpus)
 		
 KeyboardInterrupt
 >>> from subprocess import PIPE,Popen
