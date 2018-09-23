@@ -1,0 +1,217 @@
+xl 
+Usage xl [-vfN] <subcommand> [args]
+
+xl full list of subcommands:
+
+ create              Create a domain from config file <filename>
+ config-update       Update a running domain's saved configuration, used when rebuilding the domain after reboot
+ list                List information about all/some domains
+ destroy             Terminate a domain immediately
+ shutdown            Issue a shutdown signal to a domain
+ reboot              Issue a reboot signal to a domain
+ pci-attach          Insert a new pass-through pci device
+ pci-detach          Remove a domain's pass-through pci device
+ pci-list            List pass-through pci devices for a domain
+ pci-assignable-add  Make a device assignable for pci-passthru
+ pci-assignable-remove 
+                     Remove a device from being assignable
+ pci-assignable-list List all the assignable pci devices
+ pause               Pause execution of a domain
+ unpause             Unpause a paused domain
+ console             Attach to domain's console
+ vncviewer           Attach to domain's VNC server.
+ save                Save a domain state to restore later
+ migrate             Migrate a domain to another host
+ restore             Restore a domain from a saved state
+ migrate-receive     Restore a domain from a saved state
+ dump-core           Core dump a domain
+ cd-insert           Insert a cdrom into a guest's cd drive
+ cd-eject            Eject a cdrom from a guest's cd drive
+ mem-max             Set the maximum amount reservation for a domain
+ mem-set             Set the current memory usage for a domain
+ button-press        Indicate an ACPI button press to the domain
+ vcpu-list           List the VCPUs for all/some domains
+ vcpu-pin            Set which CPUs a VCPU can use
+ vcpu-set            Set the number of active VCPUs allowed for the domain
+ vm-list             List guest domains, excluding dom0, stubdoms, etc.
+ info                Get information about Xen host
+ sharing             Get information about page sharing
+ sched-credit        Get/set credit scheduler parameters
+ sched-credit2       Get/set credit2 scheduler parameters
+ sched-sedf          Get/set sedf scheduler parameters
+ domid               Convert a domain name to domain id
+ domname             Convert a domain id to domain name
+ rename              Rename a domain
+ trigger             Send a trigger to a domain
+ sysrq               Send a sysrq to a domain
+ debug-keys          Send debug keys to Xen
+ dmesg               Read and/or clear dmesg buffer
+ top                 Monitor a host and the domains in real time
+ network-attach      Create a new virtual network device
+ network-list        List virtual network interfaces for a domain
+ network-detach      Destroy a domain's virtual network device
+ block-attach        Create a new virtual block device
+ block-list          List virtual block devices for a domain
+ block-detach        Destroy a domain's virtual block device
+ vtpm-attach         Create a new virtual TPM device
+ vtpm-list           List virtual TPM devices for a domain
+ vtpm-detach         Destroy a domain's virtual TPM device
+ uptime              Print uptime for all/some domains
+ claims              List outstanding claim information about all domains
+ tmem-list           List tmem pools
+ tmem-freeze         Freeze tmem pools
+ tmem-thaw           Thaw tmem pools
+ tmem-set            Change tmem settings
+ tmem-shared-auth    De/authenticate shared tmem pool
+ tmem-freeable       Get information about how much freeable memory (MB) is in-use by tmem
+ cpupool-create      Create a new CPU pool
+ cpupool-list        List CPU pools on host
+ cpupool-destroy     Deactivates a CPU pool
+ cpupool-rename      Renames a CPU pool
+ cpupool-cpu-add     Adds a CPU to a CPU pool
+ cpupool-cpu-remove  Removes a CPU from a CPU pool
+ cpupool-migrate     Moves a domain into a CPU pool
+ cpupool-numa-split  Splits up the machine into one CPU pool per NUMA node
+ getenforce          Returns the current enforcing mode of the Flask Xen security module
+ setenforce          Sets the current enforcing mode of the Flask Xen security module
+ loadpolicy          Loads a new policy int the Flask Xen security module
+ remus               Enable Remus HA for domain
+ devd                Daemon that listens for devices and launches backends
+
+
+
+
+xl cpupool-cpu-add
+'xl cpupool-cpu-add' requires at least 2 arguments.
+
+Usage: xl [-vf] cpupool-cpu-add <CPU Pool> <CPU nr>|node:<node nr>
+
+Adds a CPU to a CPU pool.
+
+
+ xl info 
+host                   : soluscn149xen-wa-nyc.accountservergroup.com
+release                : 3.2.98-1
+version                : #1 SMP PREEMPT Wed Jan 24 16:23:45 CST 2018
+machine                : x86_64
+nr_cpus                : 24
+max_cpu_id             : 23
+nr_nodes               : 2
+cores_per_socket       : 6
+threads_per_core       : 2
+cpu_mhz                : 2933
+hw_caps                : bfebfbff:2c100800:00000000:00003f00:009ee3fd:00000000:00000001:00000000
+virt_caps              : hvm
+total_memory           : 36854
+free_memory            : 8289
+sharing_freed_memory   : 0
+sharing_used_memory    : 0
+outstanding_claims     : 0
+free_cpus              : 0
+xen_major              : 4
+xen_minor              : 4
+xen_extra              : .3
+xen_version            : 4.4.3
+xen_caps               : xen-3.0-x86_64 xen-3.0-x86_32p hvm-3.0-x86_32 hvm-3.0-x86_32p hvm-3.0-x86_64 
+xen_scheduler          : credit
+xen_pagesize           : 4096
+platform_params        : virt_start=0xffff800000000000
+xen_changeset          : 
+xen_commandline        : dom0_mem=1536M iommu=0 x2apic=0
+cc_compiler            : gcc (GCC) 4.1.2 20080704 (Red Hat 4.1.2-55)
+cc_compile_by          : 
+cc_compile_domain      : 
+cc_compile_date        : Tue Jul 26 14:04:11 UTC 2016
+xend_config_format     : 4
+[root@soluscn149xen-wa-nyc ~]# xl info  -n
+host                   : soluscn149xen-wa-nyc.accountservergroup.com
+release                : 3.2.98-1
+version                : #1 SMP PREEMPT Wed Jan 24 16:23:45 CST 2018
+machine                : x86_64
+nr_cpus                : 24
+max_cpu_id             : 23
+nr_nodes               : 2
+cores_per_socket       : 6
+threads_per_core       : 2
+cpu_mhz                : 2933
+hw_caps                : bfebfbff:2c100800:00000000:00003f00:009ee3fd:00000000:00000001:00000000
+virt_caps              : hvm
+total_memory           : 36854
+free_memory            : 8289
+sharing_freed_memory   : 0
+sharing_used_memory    : 0
+outstanding_claims     : 0
+free_cpus              : 0
+cpu_topology           :
+cpu:    core    socket     node
+  0:       0        0        0
+  1:       0        0        0
+  2:       1        0        0
+  3:       1        0        0
+  4:       2        0        0
+  5:       2        0        0
+  6:       8        0        0
+  7:       8        0        0
+  8:       9        0        0
+  9:       9        0        0
+ 10:      10        0        0
+ 11:      10        0        0
+ 12:       0        1        1
+ 13:       0        1        1
+ 14:       1        1        1
+ 15:       1        1        1
+ 16:       2        1        1
+ 17:       2        1        1
+ 18:       8        1        1
+ 19:       8        1        1
+ 20:       9        1        1
+ 21:       9        1        1
+ 22:      10        1        1
+ 23:      10        1        1
+numa_info              :
+node:    memsize    memfree    distances
+   0:     17408       2996      10,21
+   1:     20480       5293      21,10
+xen_major              : 4
+xen_minor              : 4
+xen_extra              : .3
+xen_version            : 4.4.3
+xen_caps               : xen-3.0-x86_64 xen-3.0-x86_32p hvm-3.0-x86_32 hvm-3.0-x86_32p hvm-3.0-x86_64 
+xen_scheduler          : credit
+xen_pagesize           : 4096
+platform_params        : virt_start=0xffff800000000000
+xen_changeset          : 
+xen_commandline        : dom0_mem=1536M iommu=0 x2apic=0
+cc_compiler            : gcc (GCC) 4.1.2 20080704 (Red Hat 4.1.2-55)
+cc_compile_by          : 
+cc_compile_domain      : 
+cc_compile_date        : Tue Jul 26 14:04:11 UTC 2016
+xend_config_format     : 4
+
+
+
+
+[root@soluscn149xen-wa-nyc ~]# xl cpupool-list 
+Name               CPUs   Sched     Active   Domain count
+Pool-node0          12    credit       y         11
+Pool-node1          12    credit       y          1
+NewPool              0    credit       y          0
+[root@soluscn149xen-wa-nyc ~]# xl cpupool-list  -c
+Name               CPU list
+Pool-node0         0,1,2,3,4,5,6,7,8,9,10,11
+Pool-node1         12,13,14,15,16,17,18,19,20,21,22,23
+NewPool            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
